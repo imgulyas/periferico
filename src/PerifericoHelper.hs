@@ -7,11 +7,9 @@
 --
 -- Small util for Periferico
 module PerifericoHelper
-  ( RawOrder,
-    RawOrderImporter (..),
+  ( RawOrder (..),
     RawOrderExporter (..),
     RawOrderCache (..),
-    importRawOrders,
     exportRawOrders,
     cacheRawOrders,
     readCache,
@@ -36,11 +34,6 @@ data RawOrder = RawOrder
     deliveryDeadline :: Text
   }
   deriving stock (Show, Eq)
-
-data RawOrderImporter m a where
-  ImportRawOrders :: RawOrderImporter m [RawOrder]
-
-makeSem ''RawOrderImporter
 
 data RawOrderExporter m a where
   ExportRawOrders :: [RawOrder] -> RawOrderExporter m ()
