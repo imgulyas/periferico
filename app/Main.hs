@@ -1,6 +1,8 @@
 module Main (main) where
 
+import Exporter
 import Importer
+import Order
 import PerifericoHelper
 import Polysemy
 import qualified Polysemy.Error as PE
@@ -17,18 +19,18 @@ main = do
 
   case result of
     Left e -> print e
-    Right recs -> for_ recs print
+    Right recs -> for_ recs (putTextLn . show @Text)
 
-update :: [RawOrder] -> [RawOrder] -> [RawOrder]
+update :: [Order] -> [Order] -> [Order]
 update imported _ = imported
 
-importDeduplicateUpdate :: Members '[RawOrderImporter, RawOrderExporter, RawOrderCache] m => Sem m ()
+importDeduplicateUpdate :: Members '[OrderImporter, OrderExporter, OrderCache] m => Sem m ()
 importDeduplicateUpdate = do
-  imported <- importRawOrders
+  imported <- importOrders
   fromCache <- readCache
   let updated = update imported fromCache
-  cacheRawOrders updated
-  exportRawOrders updated
+  cacheOrders updated
+  exportOrders updated
 
-importTest :: Members '[RawOrderImporter, Embed IO] m => Sem m [RawOrder]
-importTest = importRawOrders
+importTest :: Members '[OrderImporter, Embed IO] m => Sem m [Order]
+importTest = importOrders
