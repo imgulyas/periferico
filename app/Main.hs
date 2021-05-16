@@ -27,7 +27,8 @@ instance HasWooAccess Secrets where
 
 main :: IO ()
 main = do
-  secretJson <- L.readFile "/home/imgulyas/.periferico"
+  Just homeDir <- lookupEnv "HOME"
+  secretJson <- L.readFile $ homeDir <> "/.periferico"
   let secrets :: Secrets
       secrets = case (eitherDecode secretJson) of
         Right s -> s
