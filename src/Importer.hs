@@ -6,6 +6,7 @@ module Importer
     runImportPure,
     runXLSFileImport,
     runWooRestImporter,
+    HasWooAccess (..),
   )
 where
 
@@ -13,6 +14,7 @@ import Codec.Xlsx
 import Control.Lens
 import qualified Data.ByteString.Lazy as L
 import Polysemy
+import Polysemy.Http
 import qualified Polysemy.Error as PE
 import qualified Polysemy.Reader as PR
 
@@ -68,11 +70,14 @@ runXLSFileImport = reinterpret @OrderImporter @(PR.Reader FilePath) $ \case
          in pure $ map (readOrder worksheet) [2 .. lastRow]
       Nothing -> PE.throw @Text "no worksheet with name 'Worksheet'"
 
-
+class HasWooAccess a where
+  wooPublicKey  :: a -> Text
+  wooPrivateKey :: a -> Text
 
 runWooRestImporter ::
-  Members '[Embed IO, PE.Error Text] m =>
+  forall m secret a.
+  (Members '[Embed IO, PE.Error Text] m, HasWooAccess secret) =>
   Sem (OrderImporter ': m) a ->
-  Sem m a
-runWooRestImporter = interpret @OrderImporter $ \case
+  Sem (PR.Reader secret ': m) a
+runWooRestImporter = reinterpret @OrderImporter @(PR.Reader secret) $ \case
   ImportOrders -> pure [testOrder]
