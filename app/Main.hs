@@ -1,5 +1,10 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Main (main) where
 
+import Data.Aeson
+import Data.Aeson.TH
+import qualified Data.ByteString.Lazy as L
 import Exporter
 import Importer
 import Order
@@ -8,8 +13,28 @@ import Polysemy
 import qualified Polysemy.Error as PE
 import qualified Polysemy.Reader as PR
 
+data Secrets = Secrets
+  { wooPublic :: Text,
+    wooPrivate :: Text
+  }
+  deriving stock (Show)
+
+deriveJSON defaultOptions ''Secrets
+
+instance HasWooAccess Secrets where
+  wooPublicKey = wooPublic
+  wooPrivateKey = wooPrivate
+
 main :: IO ()
 main = do
+  secretJson <- L.readFile "/home/imgulyas/.periferico"
+  let secrets :: Secrets
+      secrets = case (eitherDecode secretJson) of
+        Right s -> s
+        Left e -> error (toText e)
+
+  print secrets
+
   result <-
     importTest
       & runXLSFileImport
