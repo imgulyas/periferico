@@ -26,6 +26,7 @@ library
         Order
         Importer
         Exporter
+        UI
 
     hs-source-dirs:     src
     default-language:   Haskell2010
@@ -33,6 +34,7 @@ library
         DerivingStrategies OverloadedStrings DataKinds GADTs
         FlexibleContexts LambdaCase PolyKinds RankNTypes
         ScopedTypeVariables TypeApplications TypeOperators TypeFamilies
+        RecursiveDo
 
     ghc-options:
         -Wall -Wcompat -Widentities -Wincomplete-uni-patterns
@@ -41,13 +43,14 @@ library
 
     build-depends:
         base >=4.13.0.0,
-        relude -any,
+        relude >=1.0.0.1,
         polysemy -any,
         polysemy-http -any,
         bytestring -any,
         xlsx -any,
         containers -any,
         lens -any,
+        threepenny-gui,
         aeson
 
     mixins:
@@ -81,12 +84,13 @@ executable periferico
 
     build-depends:
         base >=4.13.0.0,
-        relude -any,
+        relude >=1.0.0.1,
         polysemy -any,
         xlsx -any,
         bytestring -any,
         lens -any,
         text -any,
+        threepenny-gui,
         aeson,
         PerifericoHelper -any
 
@@ -124,6 +128,7 @@ executable tui
         relude -any,
         brick,
         microlens,
+        process,
         fdo-notify
 
     mixins:

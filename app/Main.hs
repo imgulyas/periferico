@@ -6,12 +6,14 @@ import Data.Aeson
 import Data.Aeson.TH
 import qualified Data.ByteString.Lazy as L
 import Exporter
+import Graphics.UI.Threepenny.Core hiding (delete)
 import Importer
 import Order
 import PerifericoHelper
 import Polysemy
 import qualified Polysemy.Error as PE
 import qualified Polysemy.Reader as PR
+import UI
 
 data Secrets = Secrets
   { wooPublic :: Text,
@@ -27,25 +29,27 @@ instance HasWooAccess Secrets where
 
 main :: IO ()
 main = do
-  Just homeDir <- lookupEnv "HOME"
-  secretJson <- L.readFile $ homeDir <> "/.periferico"
-  let secrets :: Secrets
-      secrets = case (eitherDecode secretJson) of
-        Right s -> s
-        Left e -> error (toText e)
+  startGUI defaultConfig setupUI
 
-  print secrets
+-- Just homeDir <- lookupEnv "HOME"
+-- secretJson <- L.readFile $ homeDir <> "/.periferico"
+-- let secrets :: Secrets
+--     secrets = case (eitherDecode secretJson) of
+--       Right s -> s
+--       Left e -> error (toText e)
 
-  result <-
-    importTest
-      & runXLSFileImport
-      & PR.runReader "/home/imgulyas/delivery.xlsx"
-      & PE.runError @Text
-      & runM
+-- print secrets
 
-  case result of
-    Left e -> print e
-    Right recs -> for_ recs (putTextLn . show @Text)
+-- result <-
+--   importTest
+--     & runXLSFileImport
+--     & PR.runReader "/home/imgulyas/delivery.xlsx"
+--     & PE.runError @Text
+--     & runM
+
+-- case result of
+--   Left e -> print e
+--   Right recs -> for_ recs (putTextLn . show @Text)
 
 update :: [Order] -> [Order] -> [Order]
 update imported _ = imported
