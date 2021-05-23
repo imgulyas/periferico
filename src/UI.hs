@@ -1,136 +1,64 @@
 module UI (setupUI) where
 
-import qualified Data.List as L
-import qualified Data.Map as Map
 import qualified Graphics.UI.Threepenny as UI
-import Graphics.UI.Threepenny.Core hiding (delete)
+import Graphics.UI.Threepenny.Core
+import qualified Graphics.UI.Threepenny.Elements as E
+import Prelude hiding (on)
+import AppState
 
-setupUI :: Window -> UI ()
-setupUI window = void $ mdo
-  return window # set title "CRUD Example (Simple)"
 
-  -- GUI elements
-  createBtn <- UI.button #+ [string "Create"]
-  deleteBtn <- UI.button #+ [string "Delete"]
-  listBox <- UI.listBox bListBoxItems bSelection bDisplayDataItem
-  filterEntry <- UI.entry bFilterString
-  ((firstname, lastname), tDataItem) <-
-    dataItem bSelectionDataItem
+setupUI :: IORef AppState -> Window -> UI ()
+setupUI _ window = void $ mdo
+  --set window title
+  void $ return window # set title "Periferico Helper"
+  E.addStyleSheet window "semantic.css"
 
-  -- GUI layout
-  element listBox # set (attr "size") "10" # set style [("width", "200px")]
+  let idDiv =
+        UI.div
+          #. "field"
+          #+ [ mkElement "label" # set UI.text "Order ID" # set (UI.attr "placeholder") "ID",
+               mkElement "input"
+             ]
 
-  let uiDataItem =
-        grid
-          [ [string "First Name:", element firstname],
-            [string "Last Name:", element lastname]
-          ]
-  let glue = string " "
-  getBody window
-    #+ [ grid
-           [ [row [string "Filter prefix:", element filterEntry], glue],
-             [element listBox, uiDataItem],
-             [row [element createBtn, element deleteBtn], glue]
-           ]
-       ]
+  let nameDiv =
+        UI.div
+          #. "field"
+          #+ [ mkElement "label" # set UI.text "Name",
+               mkElement "input"
+             ]
 
-  -- events and behaviors
-  bFilterString <- stepper "" . rumors $ UI.userText filterEntry
-  let tFilter = isPrefixOf <$> UI.userText filterEntry
-      bFilter = facts tFilter
-      eFilter = rumors tFilter
+  let submitButton =
+        UI.button
+          #. "ui button"
+          # set UI.type_ "submit"
+          # set UI.text "Submit"
 
-  let eSelection = rumors $ UI.userSelection listBox
-      eDataItemIn = rumors $ tDataItem
-      eCreate = UI.click createBtn
-      eDelete = UI.click deleteBtn
+  let form =
+        UI.div
+          #. "ui form"
+          #+ [idDiv, nameDiv, submitButton]
 
-  -- database
-  -- bDatabase :: Behavior (Database DataItem)
-  let update' mkey x = flip update x <$> mkey
-  bDatabase <-
-    accumB emptydb $
-      concatenate
-        <$> unions
-          [ create ("Emil", "Example") <$ eCreate,
-            filterJust $ update' <$> bSelection <@> eDataItemIn,
-            delete <$> filterJust (bSelection <@ eDelete)
-          ]
+  let container =
+        UI.div
+          #. "ui container"
+          #+ [form]
 
-  -- selection
-  -- bSelection :: Behavior (Maybe DatabaseKey)
-  bSelection <-
-    stepper Nothing $
-      L.head
-        <$> unions
-          [ eSelection,
-            Nothing <$ eDelete,
-            Just . nextKey <$> bDatabase <@ eCreate,
-            (\b s p -> b >>= \a -> if p (s a) then Just a else Nothing)
-              <$> bSelection <*> bShowDataItem <@> eFilter
-          ]
+  getBody window #+ [container]
 
-  let bLookup :: Behavior (DatabaseKey -> Maybe DataItem)
-      bLookup = flip lookup <$> bDatabase
-
-      bShowDataItem :: Behavior (DatabaseKey -> String)
-      bShowDataItem = (maybe "" showDataItem .) <$> bLookup
-
-      bDisplayDataItem = (UI.string .) <$> bShowDataItem
-
-      bListBoxItems :: Behavior [DatabaseKey]
-      bListBoxItems =
-        (\p show -> filter (p . show) . keys)
-          <$> bFilter <*> bShowDataItem <*> bDatabase
-
-      bSelectionDataItem :: Behavior (Maybe DataItem)
-      bSelectionDataItem = (=<<) <$> bLookup <*> bSelection
-
-  -- automatically enable / disable editing
-  let bDisplayItem :: Behavior Bool
-      bDisplayItem = maybe False (const True) <$> bSelection
-
-  element deleteBtn # sink UI.enabled bDisplayItem
-  element firstname # sink UI.enabled bDisplayItem
-  element lastname # sink UI.enabled bDisplayItem
-
-{-----------------------------------------------------------------------------
-    Database Model
-------------------------------------------------------------------------------}
-type DatabaseKey = Int
-
-data Database a = Database {nextKey :: !Int, db :: Map.Map DatabaseKey a}
-
-emptydb = Database 0 Map.empty
-
-keys = Map.keys . db
-
-create x (Database newkey db) = Database (newkey + 1) $ Map.insert newkey x db
-
-update key x (Database newkey db) = Database newkey $ Map.insert key x db
-
-delete :: DatabaseKey -> Database a -> Database a
-delete key (Database newkey db) = Database newkey $ Map.delete key db
-
-lookup :: DatabaseKey -> Database a -> Maybe a
-lookup key (Database _ db) = Map.lookup key db
-
-{-----------------------------------------------------------------------------
-    Data items that are stored in the data base
-------------------------------------------------------------------------------}
-type DataItem = (String, String)
-
-showDataItem (firstname, lastname) = lastname ++ ", " ++ firstname
-
--- | Data item widget, consisting of two text entries
-dataItem ::
-  Behavior (Maybe DataItem) ->
-  UI ((Element, Element), Tidings DataItem)
-dataItem bItem = do
-  entry1 <- UI.entry $ fst . maybe ("", "") id <$> bItem
-  entry2 <- UI.entry $ snd . maybe ("", "") id <$> bItem
-
-  return
-    ( (getElement entry1, getElement entry2),
-      (,) <$> UI.userText entry1 <*> UI.userText entry2
-    )
+-- <form class="ui form">
+--   <div class="field">
+--     <label>First Name</label>
+--     <input type="text" name="first-name" placeholder="First Name">
+--   </div>
+--   <div class="field">
+--     <label>Last Name</label>
+--     <input type="text" name="last-name" placeholder="Last Name">
+--   </div>
+--   <div class="field">
+--     <div class="ui checkbox">
+--       <input type="checkbox" tabindex="0" class="hidden">
+--       <label>I agree to the Terms and Conditions</label>
+--     </div>
+--   </div>
+--   <button class="ui button" type="submit">Submit</button>
+-- </form>

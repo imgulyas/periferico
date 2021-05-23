@@ -13,12 +13,11 @@ where
 import Codec.Xlsx
 import Control.Lens
 import qualified Data.ByteString.Lazy as L
-import Polysemy
-import Polysemy.Http
-import qualified Polysemy.Error as PE
-import qualified Polysemy.Reader as PR
-
 import Order
+import Polysemy
+import qualified Polysemy.Error as PE
+import Polysemy.Http
+import qualified Polysemy.Reader as PR
 
 data OrderImporter m a where
   ImportOrders :: OrderImporter m [Order]
@@ -71,7 +70,7 @@ runXLSFileImport = reinterpret @OrderImporter @(PR.Reader FilePath) $ \case
       Nothing -> PE.throw @Text "no worksheet with name 'Worksheet'"
 
 class HasWooAccess a where
-  wooPublicKey  :: a -> Text
+  wooPublicKey :: a -> Text
   wooPrivateKey :: a -> Text
 
 runWooRestImporter ::

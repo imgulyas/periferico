@@ -2,6 +2,7 @@
 
 module Main (main) where
 
+import AppState
 import Data.Aeson
 import Data.Aeson.TH
 import qualified Data.ByteString.Lazy as L
@@ -27,9 +28,22 @@ instance HasWooAccess Secrets where
   wooPublicKey = wooPublic
   wooPrivateKey = wooPrivate
 
+initialState = AppState "initial ID input text"
+
 main :: IO ()
 main = do
-  startGUI defaultConfig setupUI
+  Just homeDir <- lookupEnv "HOME"
+  let perifericoDir = homeDir <> "/.periferico"
+  stateRef <- newIORef initialState
+
+  --TODO: add .periferico dir existence check
+
+  startGUI
+    defaultConfig
+      { jsPort = Just 5000,
+        jsStatic = Just perifericoDir
+      }
+    (setupUI stateRef)
 
 -- Just homeDir <- lookupEnv "HOME"
 -- secretJson <- L.readFile $ homeDir <> "/.periferico"
@@ -51,16 +65,16 @@ main = do
 --   Left e -> print e
 --   Right recs -> for_ recs (putTextLn . show @Text)
 
-update :: [Order] -> [Order] -> [Order]
-update imported _ = imported
+-- update :: [Order] -> [Order] -> [Order]
+-- update imported _ = imported
 
-importDeduplicateUpdate :: Members '[OrderImporter, OrderExporter, OrderCache] m => Sem m ()
-importDeduplicateUpdate = do
-  imported <- importOrders
-  fromCache <- readCache
-  let updated = update imported fromCache
-  cacheOrders updated
-  exportOrders updated
+-- importDeduplicateUpdate :: Members '[OrderImporter, OrderExporter, OrderCache] m => Sem m ()
+-- importDeduplicateUpdate = do
+--   imported <- importOrders
+--   fromCache <- readCache
+--   let updated = update imported fromCache
+--   cacheOrders updated
+--   exportOrders updated
 
-importTest :: Members '[OrderImporter, Embed IO] m => Sem m [Order]
-importTest = importOrders
+-- importTest :: Members '[OrderImporter, Embed IO] m => Sem m [Order]
+-- importTest = importOrders

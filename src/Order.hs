@@ -5,9 +5,6 @@ module Order
   )
 where
 
-import Control.Lens
-
--- import Control.Lens.TH
 
 data Order = Order
   { _orderId :: Text,
@@ -25,4 +22,3 @@ data Order = Order
   }
   deriving stock (Show, Eq)
 
--- makeLenses ''Order
