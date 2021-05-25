@@ -7,7 +7,7 @@ module Exporter
   )
 where
 
-import Order
+import Domain
 --import PerifericoHelper
 import Polysemy
 

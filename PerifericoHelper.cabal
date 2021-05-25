@@ -23,7 +23,7 @@ source-repository head
 library
     exposed-modules:
         PerifericoHelper
-        Order
+        Domain
         Importer
         Exporter
         UI

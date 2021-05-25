@@ -13,7 +13,7 @@ module PerifericoHelper
   )
 where
 
-import Order
+import Domain
 import Polysemy
 
 data OrderCache m a where

@@ -13,7 +13,7 @@ where
 import Codec.Xlsx
 import Control.Lens
 import qualified Data.ByteString.Lazy as L
-import Order
+import Domain
 import Polysemy
 import qualified Polysemy.Error as PE
 import Polysemy.Http

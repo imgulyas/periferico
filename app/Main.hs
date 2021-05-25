@@ -6,10 +6,10 @@ import AppState
 import Data.Aeson
 import Data.Aeson.TH
 import qualified Data.ByteString.Lazy as L
+import Domain
 import Exporter
 import Graphics.UI.Threepenny.Core hiding (delete)
 import Importer
-import Order
 import PerifericoHelper
 import Polysemy
 import qualified Polysemy.Error as PE

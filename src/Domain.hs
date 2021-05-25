@@ -1,10 +1,10 @@
--- {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE StrictData #-}
 
-module Order
+module Domain
   ( Order (..),
   )
 where
-
 
 data Order = Order
   { _orderId :: Text,
@@ -21,4 +21,3 @@ data Order = Order
     _deliveryDeadline :: Text
   }
   deriving stock (Show, Eq)
-
